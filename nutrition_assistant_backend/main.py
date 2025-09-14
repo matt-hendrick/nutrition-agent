@@ -1,8 +1,11 @@
-from clients.openai_client import completions_request
+from clients.openai_service import OpenAIService
+from clients.ollama_service import OllamaService
 from openai import OpenAI
 
 if __name__ == "__main__":
     client = OpenAI()
+    service = OpenAIService()
+    ollama_service = OllamaService()
     chat_history = []
     while True:
         user_input = input(
@@ -11,9 +14,12 @@ if __name__ == "__main__":
         if not user_input:
             print("No input provided")
             continue
-        result = completions_request(
+        result = service.generate_response(
             user_input, client=client, chat_history=chat_history
         )
+        # result = ollama_service.generate_response(
+        #     user_input, stream=False, chat_history=chat_history
+        # )
         print(result.content)
 
         user_message = {"role": "user", "content": user_input}
