@@ -36,27 +36,3 @@ class OllamaService(LLMServiceInterface):
                 return response.message
         except Exception as e:
             return f"An error occurred: {str(e)}"
-
-
-if __name__ == "__main__":
-    service = OllamaService()
-    chat_history = []
-    while True:
-        user_input = input("Hi, how can I help you today?\n\n")
-        if not user_input:
-            print("No input provided")
-            continue
-        result = service.generate_response(
-            user_input, stream=True, chat_history=chat_history
-        )
-        new_messages = [
-            {
-                "role": "user",
-                "content": user_input,
-            },
-            {
-                "role": "assistant",
-                "content": result,
-            },
-        ]
-        chat_history.extend(new_messages)
