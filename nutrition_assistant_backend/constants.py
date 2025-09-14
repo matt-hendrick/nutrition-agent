@@ -1,0 +1,2 @@
+DEFAULT_OPENAI_MODEL = "gpt-5-mini"
+DEFAULT_OLLAMA_MODEL = "qwen3"

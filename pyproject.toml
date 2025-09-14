@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "nutrition-assistant-backend"
+version = "0.1.0"
+description = ""
+authors = ["Matt Hendrick <75456865+matt-hendrick@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+openai = "^1.107.2"
+ollama = "^0.5.3"
+pydantic = "^2.11.9"
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.13.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
