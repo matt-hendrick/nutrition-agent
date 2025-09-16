@@ -3,6 +3,10 @@ from clients.openai_service import OpenAIService
 from clients.ollama_service import OllamaService
 from openai import OpenAI
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Nutrition Assistant")
     parser.add_argument(

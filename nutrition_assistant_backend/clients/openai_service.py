@@ -1,5 +1,8 @@
 from openai import OpenAI
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
+from openai.types.chat.chat_completion_tool_union_param import (
+    ChatCompletionToolUnionParam,
+)
 
 from constants import DEFAULT_OPENAI_MODEL
 from prompts import DEFAULT_SYSTEM_PROMPT
@@ -21,6 +24,7 @@ class OpenAIService(LLMServiceInterface):
         temperature: float = 0.0,
         reasoning_effort: str | None = "minimal",
         client: OpenAI | None = None,
+        tools: list[ChatCompletionToolUnionParam] = None,
     ):
         if not user_input:
             raise Exception("User input not provided")
@@ -44,6 +48,9 @@ class OpenAIService(LLMServiceInterface):
                 "model": model,
                 "messages": messages,
             }
+
+            if tools:
+                kwargs["tools"] = tools
 
             # Some reasoning models do not support temperature
             if model in OPENAI_MODELS_THAT_SUPPORT_TEMPERATURE:

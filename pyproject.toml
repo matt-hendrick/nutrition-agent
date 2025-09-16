@@ -10,6 +10,10 @@ python = "^3.12"
 openai = "^1.107.2"
 ollama = "^0.5.3"
 pydantic = "^2.11.9"
+tavily-python = "^0.7.12"
+python-dotenv = "^1.1.1"
+requests = "^2.32.5"
+beautifulsoup4 = "^4.13.5"
 
 
 [tool.poetry.group.dev.dependencies]
