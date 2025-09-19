@@ -1,13 +1,11 @@
 from clients.openai_service import OpenAIService
 from openai import OpenAI
-
-from dotenv import load_dotenv
-
 from tools.tavily_tools import tavily_search
 from tools.beautiful_soup_tools import fetch_clean_text
 from enum import Enum
 from pydantic import BaseModel
 from prompts import QUESTION_TYPE_PROMPT
+from typing import Dict, List, Optional, Any
 
 
 class QuestionType(str, Enum):
@@ -21,228 +19,162 @@ class QuestionType(str, Enum):
 
 class QuestionTypeResponse(BaseModel):
     type: QuestionType
-    search: str | None = None
+    search: Optional[str] = None
 
 
-def handle_specific_restaurant(user_input, result, chat_history, service, client):
-    if not result.parsed.search:
-        raise Exception("No search found in result", result)
-    menu_results = tavily_search(result.parsed.search)
-    print("Menu Results:", menu_results)
-    results = menu_results.get("results", [])
-    if results:
-        for result in results:
-            # We have a simplistic bs4 scraper that can easily fail on some sites
-            # So we will try/catch until we successfully fetch to avoid breaking the whole flow
-            try:
-                if "url" in result:
-                    menu_content = fetch_clean_text(result["url"])
-                    print("Menu Content:", menu_content)
-                    # Once we found a result with some menu content, we can stop
-                    break
-                else:
-                    print("No menu URLs found in Tavily results.")
-            except Exception as e:
-                print(f"Error fetching menu from {result.get('url')}: {e}")
-    else:
-        print("No results found from Tavily search.")
+class Agent:
+    def __init__(self, service=None, client=None):
+        self.service = service or OpenAIService()
+        self.client = client or OpenAI()
+        self.threads: Dict[str, List[Dict[str, str]]] = {}
 
-    specific_restaurant_prompt = f"""You are an expert nutrition assistant. 
+    def get_history(self, thread_id: str) -> List[Dict[str, str]]:
+        return self.threads.setdefault(thread_id, [])
 
-    Here is the menu content we found for the restaurant they mentioned: {menu_content}.
+    def add_to_history(self, thread_id: str, user_input: str, assistant_output: str):
+        history = self.get_history(thread_id)
+        history.append({"role": "user", "content": user_input})
+        history.append({"role": "assistant", "content": assistant_output})
 
-    Here are the results we found when searching for the restaurant's menu: {menu_results}. 
-
-    Use that information and your expertise to answer the user's question as best as you can."""
-
-    final_response = service.generate_response(
-        user_input=user_input,
-        system_prompt=specific_restaurant_prompt,
-        client=client,
-        chat_history=chat_history,
-    )
-    print("Final Response:", final_response.content)
-    return final_response
-
-
-def handle_restaurant_recommendation(user_input, result, chat_history, service, client):
-    if not result.parsed.search:
-        raise Exception("No search found in result", result)
-    rec_results = tavily_search(result.parsed.search)
-    print("Recommendation Results:", rec_results)
-    results = rec_results.get("results", [])
-
-    recommendation_prompt = f"""You are an expert nutrition assistant.
-
-    The user is asking for restaurant recommendations in a city or for a specific cuisine. Here are the search results you can use to inform your answer:
-    {results}
-
-    Use the above information and your nutrition expertise to recommend restaurants that fit the user's request, and provide nutrition advice or healthy options based on the info provided. If the user mentioned dietary restrictions or preferences, take those into account. Include URLs as citations if relevant.
-
-    If applicable, suggest healthier alternatives or modifications to menu items to better align with the user's nutrition goals. Suggest up to 3 options, but only if good options are in the results.
-    """
-
-    final_response = service.generate_response(
-        user_input=user_input,
-        system_prompt=recommendation_prompt,
-        client=client,
-        chat_history=chat_history,
-    )
-    print("Final Response:", final_response.content)
-    return final_response
-
-def handle_other(user_input, result, chat_history, service, client):
-    context = ""
-    # If a search query is provided, run it and use the results as context
-    if result.parsed.search and result.parsed.search != "none":
-        other_results = tavily_search(result.parsed.search)
-        print("Other Results:", other_results)
-        results = other_results.get("results", [])
-        context = f"""\nHere is some context from a web search that may be relevant:
-            {results}"""
-
-    other_prompt = f"""You are an expert nutrition assistant.{context}
-    
-    Use your expertise and any contextual information to answer the user's question or continue the conversation.
-    """
-
-    final_response = service.generate_response(
-        user_input=user_input,
-        system_prompt=other_prompt,
-        client=client,
-        chat_history=chat_history,
-    )
-    print("Final Response:", final_response.content)
-    return final_response
-
-def handle_recipe_suggestion(user_input, result, chat_history, service, client):
-    if not result.parsed.search:
-        raise Exception("No search found in result", result)
-    recipe_results = tavily_search(result.parsed.search)
-    print("Recipe Results:", recipe_results)
-    results = recipe_results.get("results", [])
-    context = f"\nHere are some recipe search results that may be relevant:\n{results}"
-
-    recipe_prompt = f"""You are an expert nutrition assistant.{context}
-
-Use your expertise and any contextual information to suggest healthy recipes or meal ideas that fit the user's request. If the user mentioned dietary restrictions or preferences, take those into account. 
-
-Provide URLs if available for the recipes you cite.
-"""
-
-    final_response = service.generate_response(
-        user_input=user_input,
-        system_prompt=recipe_prompt,
-        client=client,
-        chat_history=chat_history,
-    )
-    print("Final Response:", final_response.content)
-    return final_response
-
-
-def handle_general_nutrition_info(user_input, result, chat_history, service, client):
-    if not result.parsed.search:
-        raise Exception("No search found in result", result)
-    nutrition_results = tavily_search(result.parsed.search)
-    print("Nutrition Results:", nutrition_results)
-    results = nutrition_results.get("results", [])
-    context = f"\nHere is some nutrition info from a web search that may be relevant:\n{results}"
-
-    nutrition_prompt = f"""You are an expert nutrition assistant.{context}
-
-Use your expertise and any contextual information to answer the user's nutrition question. Be clear, concise, and cite sources if relevant.
-"""
-
-    final_response = service.generate_response(
-        user_input=user_input,
-        system_prompt=nutrition_prompt,
-        client=client,
-        chat_history=chat_history,
-    )
-    print("Final Response:", final_response.content)
-    return final_response
-
-def handle_website_content(user_input, result, chat_history, service, client):
-    if not result.parsed.search or result.parsed.search == "none":
-        raise Exception("No URL found in result for website_content", result)
-    url = result.parsed.search
-    print(f"Fetching website content from: {url}")
-    try:
-        website_text = fetch_clean_text(url)
-    except Exception as e:
-        print(f"Error fetching website content from {url}: {e}")
-        website_text = ""
-
-    website_prompt = f"""You are an expert nutrition assistant.
-
-Here is the content extracted from the website the user referenced:
-{website_text}
-
-Use this information and your expertise to answer the user's question as best as you can.
-"""
-
-    final_response = service.generate_response(
-        user_input=user_input,
-        system_prompt=website_prompt,
-        client=client,
-        chat_history=chat_history,
-    )
-    print("Final Response:", final_response.content)
-    return final_response
-
-
-if __name__ == "__main__":
-    load_dotenv()
-
-    chat_history = []
-
-    client = OpenAI()
-    service = OpenAIService()
-
-    while True:
-        user_input = input(
-            "Hello, I am your nutrition assistant. How can I help you today?\n\n"
-        )
-        if not user_input:
-            print("No input provided")
-            continue
-
-        ## We are indentifying the user's intent first to route to the right prompt/tool logic
-        result = service.generate_response(
+    def classify_question(
+        self, user_input: str, chat_history: List[Dict[str, str]]
+    ) -> Any:
+        return self.service.generate_response(
             user_input=user_input,
             system_prompt=QUESTION_TYPE_PROMPT,
-            client=client,
+            client=self.client,
             chat_history=chat_history,
             response_format=QuestionTypeResponse,
         )
-        print(result)
 
-        if result.parsed.type == QuestionType.specific_restaurant:
-            final_response = handle_specific_restaurant(
-                user_input, result, chat_history, service, client
-            )
-        elif result.parsed.type == QuestionType.restaurant_recommendation:
-            final_response = handle_restaurant_recommendation(
-                user_input, result, chat_history, service, client
-            )
-        elif result.parsed.type == QuestionType.recipe_suggestion:
-            final_response = handle_recipe_suggestion(
-                user_input, result, chat_history, service, client
-            )
-        elif result.parsed.type == QuestionType.general_nutrition_info:
-            final_response = handle_general_nutrition_info(
-                user_input, result, chat_history, service, client
-            )
-        elif result.parsed.type == QuestionType.website_content:
-            final_response = handle_website_content(
-                user_input, result, chat_history, service, client
-            )
-        else:
-            final_response = handle_other(
-                user_input, result, chat_history, service, client
-            )
+    def handle(self, user_input: str, thread_id: str) -> str:
+        chat_history = self.get_history(thread_id)
+        result = self.classify_question(user_input, chat_history)
+        handler_map = {
+            QuestionType.specific_restaurant: self.handle_specific_restaurant,
+            QuestionType.restaurant_recommendation: self.handle_restaurant_recommendation,
+            QuestionType.recipe_suggestion: self.handle_recipe_suggestion,
+            QuestionType.general_nutrition_info: self.handle_general_nutrition_info,
+            QuestionType.website_content: self.handle_website_content,
+            QuestionType.other: self.handle_other,
+        }
+        handler = handler_map.get(result.parsed.type, self.handle_other)
+        response = handler(user_input, result, chat_history)
+        self.add_to_history(thread_id, user_input, response.content)
+        return response.content
 
-        if final_response:
-            user_message = {"role": "user", "content": user_input}
-            assistant_message = {"role": "assistant", "content": final_response.content}
-            chat_history.extend([user_message, assistant_message])
+    def handle_specific_restaurant(self, user_input, result, chat_history):
+        if not result.parsed.search:
+            raise Exception("No search found in result", result)
+        menu_results = tavily_search(result.parsed.search)
+        results = menu_results.get("results", [])
+        menu_content = ""
+        if results:
+            for result_item in results:
+                try:
+                    if "url" in result_item:
+                        menu_content = fetch_clean_text(result_item["url"])
+                        break
+                except Exception:
+                    continue
+        specific_restaurant_prompt = (
+            f"You are an expert nutrition assistant. "
+            f"Here is the menu content we found: {menu_content}. "
+            f"Here are the search results: {menu_results}. "
+            "Use that information and your expertise to answer the user's question."
+        )
+        return self.service.generate_response(
+            user_input=user_input,
+            system_prompt=specific_restaurant_prompt,
+            client=self.client,
+            chat_history=chat_history,
+        )
+
+    def handle_restaurant_recommendation(self, user_input, result, chat_history):
+        if not result.parsed.search:
+            raise Exception("No search found in result", result)
+        rec_results = tavily_search(result.parsed.search)
+        results = rec_results.get("results", [])
+        recommendation_prompt = (
+            "You are an expert nutrition assistant.\n"
+            "The user is asking for restaurant recommendations. Here are the search results:\n"
+            f"{results}\n"
+            "Use the above information and your nutrition expertise to recommend restaurants and provide nutrition advice."
+        )
+        return self.service.generate_response(
+            user_input=user_input,
+            system_prompt=recommendation_prompt,
+            client=self.client,
+            chat_history=chat_history,
+        )
+
+    def handle_recipe_suggestion(self, user_input, result, chat_history):
+        if not result.parsed.search:
+            raise Exception("No search found in result", result)
+        recipe_results = tavily_search(result.parsed.search)
+        results = recipe_results.get("results", [])
+        recipe_prompt = (
+            "You are an expert nutrition assistant.\n"
+            f"Here are some recipe search results:\n{results}\n"
+            "Use your expertise to suggest healthy recipes or meal ideas."
+        )
+        return self.service.generate_response(
+            user_input=user_input,
+            system_prompt=recipe_prompt,
+            client=self.client,
+            chat_history=chat_history,
+        )
+
+    def handle_general_nutrition_info(self, user_input, result, chat_history):
+        if not result.parsed.search:
+            raise Exception("No search found in result", result)
+        nutrition_results = tavily_search(result.parsed.search)
+        results = nutrition_results.get("results", [])
+        nutrition_prompt = (
+            "You are an expert nutrition assistant.\n"
+            f"Here is some nutrition info from a web search:\n{results}\n"
+            "Use your expertise to answer the user's nutrition question."
+        )
+        return self.service.generate_response(
+            user_input=user_input,
+            system_prompt=nutrition_prompt,
+            client=self.client,
+            chat_history=chat_history,
+        )
+
+    def handle_website_content(self, user_input, result, chat_history):
+        if not result.parsed.search or result.parsed.search == "none":
+            raise Exception("No URL found in result for website_content", result)
+        url = result.parsed.search
+        try:
+            website_text = fetch_clean_text(url)
+        except Exception:
+            website_text = ""
+        website_prompt = (
+            "You are an expert nutrition assistant.\n"
+            f"Here is the content extracted from the website:\n{website_text}\n"
+            "Use this information and your expertise to answer the user's question."
+        )
+        return self.service.generate_response(
+            user_input=user_input,
+            system_prompt=website_prompt,
+            client=self.client,
+            chat_history=chat_history,
+        )
+
+    def handle_other(self, user_input, result, chat_history):
+        context = ""
+        if result.parsed.search and result.parsed.search != "none":
+            other_results = tavily_search(result.parsed.search)
+            results = other_results.get("results", [])
+            context = f"\nHere is some context from a web search:\n{results}"
+        other_prompt = (
+            "You are an expert nutrition assistant."
+            f"{context}\nUse your expertise to answer the user's question."
+        )
+        return self.service.generate_response(
+            user_input=user_input,
+            system_prompt=other_prompt,
+            client=self.client,
+            chat_history=chat_history,
+        )
