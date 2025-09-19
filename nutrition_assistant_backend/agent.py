@@ -47,8 +47,6 @@ def handle_specific_restaurant(user_input, result, chat_history, service, client
     else:
         print("No results found from Tavily search.")
 
-    # Now answer the user's original question using the menu content
-    # We also provide the raw menu results in case there as those usually have a concise list of particularly relevant info
     specific_restaurant_prompt = f"""You are an expert nutrition assistant. 
 
     Here is the menu content we found for the restaurant they mentioned: {menu_content}.
@@ -93,7 +91,6 @@ def handle_restaurant_recommendation(user_input, result, chat_history, service, 
     print("Final Response:", final_response.content)
     return final_response
 
-
 def handle_other(user_input, result, chat_history, service, client):
     context = ""
     # If a search query is provided, run it and use the results as context
@@ -117,7 +114,6 @@ def handle_other(user_input, result, chat_history, service, client):
     )
     print("Final Response:", final_response.content)
     return final_response
-
 
 def handle_recipe_suggestion(user_input, result, chat_history, service, client):
     if not result.parsed.search:
@@ -166,7 +162,6 @@ Use your expertise and any contextual information to answer the user's nutrition
     print("Final Response:", final_response.content)
     return final_response
 
-
 def handle_website_content(user_input, result, chat_history, service, client):
     if not result.parsed.search or result.parsed.search == "none":
         raise Exception("No URL found in result for website_content", result)
@@ -174,7 +169,6 @@ def handle_website_content(user_input, result, chat_history, service, client):
     print(f"Fetching website content from: {url}")
     try:
         website_text = fetch_clean_text(url)
-        print("Website Content:", website_text[:1000])  # Preview first 1000 chars
     except Exception as e:
         print(f"Error fetching website content from {url}: {e}")
         website_text = ""
