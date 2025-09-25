@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, FormEvent } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import type { FormEvent } from 'react'
 import './App.css'
 import { sendMessage } from './api/chat'
 
@@ -7,7 +8,7 @@ interface Message {
   content: string
 }
 
-function App(): JSX.Element {
+function App(): React.JSX.Element {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -67,8 +68,8 @@ function App(): JSX.Element {
               <h2>Welcome to your Nutrition Assistant!</h2>
               <p>Ask me about:</p>
               <ul>
-                <li>Restaurant recommendations</li>
-                <li>Menu nutrition information</li>
+                <li>Specific restaurant menu nutrition information</li>
+                <li>Restaurant recommendations for your area</li>
                 <li>Recipe suggestions</li>
                 <li>General nutrition questions</li>
               </ul>
