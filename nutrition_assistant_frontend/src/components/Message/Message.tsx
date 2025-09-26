@@ -1,5 +1,6 @@
 import type { ChatMessage } from '../../types'
 import styles from './Message.module.css'
+import ReactMarkdown from 'react-markdown'
 
 interface MessageProps {
   message: ChatMessage
@@ -19,7 +20,7 @@ export default function Message({ message, isTyping }: MessageProps) {
               <span></span><span></span><span></span>
             </span>
           ) : (
-            message.content
+            <ReactMarkdown>{message.content}</ReactMarkdown> 
           )}
         </div>
       </div>

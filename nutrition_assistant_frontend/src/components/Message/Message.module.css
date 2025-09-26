@@ -55,6 +55,21 @@
   font-size: 0.9375rem;
 }
 
+.messageText ul,
+.messageText ol {
+  margin: 1em 0 1em 2em;
+  padding-left: 1.5em;
+  list-style: disc inside;
+}
+
+.messageText ol {
+  list-style: decimal inside;
+}
+
+.messageText li {
+  margin-bottom: 0.5em;
+}
+
 /* Typing indicator */
 .typing {
   display: flex;

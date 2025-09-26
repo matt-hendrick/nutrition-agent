@@ -7,6 +7,22 @@ from pydantic import BaseModel
 from prompts import QUESTION_TYPE_PROMPT
 from typing import Dict, List, Optional, Any
 
+PROMPT_PREFIX = "You are an expert nutrition assistant.\n"
+PROMPT_SUFFIX = """
+Format your answer in raw markdown. Use markdown lists, headings, and bold where appropriate.
+Cite your sources using markdown links, for example: [Little Goat Diner Menu](https://www.littlegoatchicago.com/menu).
+The result will be directly passed to a React Markdown JSX component to render to the user.
+
+Example:
+- **Breakfast:** Pancakes, eggs, hashbrowns
+- **Sandwiches:** Tonkatsu, Shrimp Sammie
+
+Sources:
+- [Little Goat Diner Menu](https://www.littlegoatchicago.com/menu)
+"""
+
+def construct_prompt(main_prompt_content: str) -> str:
+    return f"{PROMPT_PREFIX}{main_prompt_content}{PROMPT_SUFFIX}"
 
 class QuestionType(str, Enum):
     specific_restaurant = "specific_restaurant"
@@ -16,11 +32,9 @@ class QuestionType(str, Enum):
     website_content = "website_content"
     other = "other"
 
-
 class QuestionTypeResponse(BaseModel):
     type: QuestionType
     search: Optional[str] = None
-
 
 class Agent:
     def __init__(self, service=None, client=None):
@@ -77,15 +91,15 @@ class Agent:
                         break
                 except Exception:
                     continue
-        specific_restaurant_prompt = (
-            f"You are an expert nutrition assistant. "
+        main_prompt_content = (
             f"Here is the menu content we found: {menu_content}. "
             f"Here are the search results: {menu_results}. "
             "Use that information and your expertise to answer the user's question."
         )
+        prompt = construct_prompt(main_prompt_content)
         return self.service.generate_response(
             user_input=user_input,
-            system_prompt=specific_restaurant_prompt,
+            system_prompt=prompt,
             client=self.client,
             chat_history=chat_history,
         )
@@ -95,15 +109,15 @@ class Agent:
             raise Exception("No search found in result", result)
         rec_results = tavily_search(result.parsed.search)
         results = rec_results.get("results", [])
-        recommendation_prompt = (
-            "You are an expert nutrition assistant.\n"
+        main_prompt_content = (
             "The user is asking for restaurant recommendations. Here are the search results:\n"
             f"{results}\n"
             "Use the above information and your nutrition expertise to recommend restaurants and provide nutrition advice."
         )
+        prompt = construct_prompt(main_prompt_content)
         return self.service.generate_response(
             user_input=user_input,
-            system_prompt=recommendation_prompt,
+            system_prompt=prompt,
             client=self.client,
             chat_history=chat_history,
         )
@@ -113,14 +127,14 @@ class Agent:
             raise Exception("No search found in result", result)
         recipe_results = tavily_search(result.parsed.search)
         results = recipe_results.get("results", [])
-        recipe_prompt = (
-            "You are an expert nutrition assistant.\n"
+        main_prompt_content = (
             f"Here are some recipe search results:\n{results}\n"
             "Use your expertise to suggest healthy recipes or meal ideas."
         )
+        prompt = construct_prompt(main_prompt_content)
         return self.service.generate_response(
             user_input=user_input,
-            system_prompt=recipe_prompt,
+            system_prompt=prompt,
             client=self.client,
             chat_history=chat_history,
         )
@@ -130,14 +144,14 @@ class Agent:
             raise Exception("No search found in result", result)
         nutrition_results = tavily_search(result.parsed.search)
         results = nutrition_results.get("results", [])
-        nutrition_prompt = (
-            "You are an expert nutrition assistant.\n"
+        main_prompt_content = (
             f"Here is some nutrition info from a web search:\n{results}\n"
             "Use your expertise to answer the user's nutrition question."
         )
+        prompt = construct_prompt(main_prompt_content)
         return self.service.generate_response(
             user_input=user_input,
-            system_prompt=nutrition_prompt,
+            system_prompt=prompt,
             client=self.client,
             chat_history=chat_history,
         )
@@ -150,14 +164,14 @@ class Agent:
             website_text = fetch_clean_text(url)
         except Exception:
             website_text = ""
-        website_prompt = (
-            "You are an expert nutrition assistant.\n"
+        main_prompt_content = (
             f"Here is the content extracted from the website:\n{website_text}\n"
             "Use this information and your expertise to answer the user's question."
         )
+        prompt = construct_prompt(main_prompt_content)
         return self.service.generate_response(
             user_input=user_input,
-            system_prompt=website_prompt,
+            system_prompt=prompt,
             client=self.client,
             chat_history=chat_history,
         )
@@ -168,13 +182,13 @@ class Agent:
             other_results = tavily_search(result.parsed.search)
             results = other_results.get("results", [])
             context = f"\nHere is some context from a web search:\n{results}"
-        other_prompt = (
-            "You are an expert nutrition assistant."
+        main_prompt_content = (
             f"{context}\nUse your expertise to answer the user's question."
         )
+        prompt = construct_prompt(main_prompt_content)
         return self.service.generate_response(
             user_input=user_input,
-            system_prompt=other_prompt,
+            system_prompt=prompt,
             client=self.client,
             chat_history=chat_history,
         )
