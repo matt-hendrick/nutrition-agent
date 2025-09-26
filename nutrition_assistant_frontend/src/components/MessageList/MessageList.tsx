@@ -1,7 +1,8 @@
 import type { ChatMessage } from '../../types'
 import WelcomeMessage from '../WelcomeMessage/WelcomeMessage'
 import styles from './MessageList.module.css'
-import { ForwardedRef, forwardRef } from 'react'
+import { forwardRef } from 'react'
+import type { ForwardedRef } from 'react'
 import Message from '../Message/Message'
 
 interface MessageListProps {

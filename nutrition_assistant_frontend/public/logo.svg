@@ -1,0 +1,51 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="leafGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#34d399;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+    </linearGradient>
+    <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="58" fill="url(#leafGradient)" filter="url(#dropShadow)"/>
+  <circle cx="60" cy="60" r="58" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+  
+  <!-- Main leaf shape -->
+  <path d="M35 65 Q35 35, 65 35 Q80 35, 85 50 Q85 65, 70 75 Q50 85, 35 65 Z" 
+        fill="rgba(255,255,255,0.95)" 
+        stroke="none"/>
+  
+  <!-- Leaf vein details -->
+  <path d="M42 55 Q52 45, 62 50 Q70 55, 75 65" 
+        stroke="url(#leafGradient)" 
+        stroke-width="2" 
+        fill="none" 
+        stroke-linecap="round"/>
+  
+  <path d="M45 62 Q52 58, 58 62" 
+        stroke="url(#leafGradient)" 
+        stroke-width="1.5" 
+        fill="none" 
+        stroke-linecap="round"/>
+  
+  <path d="M48 68 Q52 66, 56 68" 
+        stroke="url(#leafGradient)" 
+        stroke-width="1.5" 
+        fill="none" 
+        stroke-linecap="round"/>
+  
+  <!-- Small accent elements (representing nutrition/vitamins) -->
+  <circle cx="75" cy="45" r="3" fill="url(#accentGradient)" opacity="0.8"/>
+  <circle cx="45" cy="75" r="2.5" fill="url(#accentGradient)" opacity="0.6"/>
+  <circle cx="70" cy="70" r="2" fill="url(#accentGradient)" opacity="0.7"/>
+  
+  <!-- Subtle highlight on main shape -->
+  <ellipse cx="55" cy="50" rx="8" ry="4" fill="rgba(255,255,255,0.3)" transform="rotate(-25 55 50)"/>
+</svg>
