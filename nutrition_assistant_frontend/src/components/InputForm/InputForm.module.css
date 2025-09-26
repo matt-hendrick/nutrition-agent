@@ -1,0 +1,77 @@
+.inputForm {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  background: var(--white);
+  border-top: 1px solid var(--gray-200);
+}
+
+.messageInput {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-lg);
+  outline: none;
+  font-size: 0.9375rem;
+  background: var(--white);
+  transition: border-color 0.15s ease;
+  resize: none;
+}
+
+.messageInput:focus {
+  border-color: var(--blue-600);
+  box-shadow: 0 0 0 1px var(--blue-600);
+}
+
+.messageInput:disabled {
+  background: var(--gray-50);
+  color: var(--gray-400);
+  cursor: not-allowed;
+}
+
+.messageInput::placeholder {
+  color: var(--gray-400);
+}
+
+.sendBtn {
+  background: var(--blue-600);
+  color: var(--white);
+  border: none;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--border-radius-lg);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.sendBtn:hover:not(:disabled) {
+  background: var(--blue-700);
+}
+
+.sendBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .inputForm {
+    padding: var(--space-4);
+  }
+  .messageInput, .sendBtn {
+    font-size: 0.875rem;
+  }
+}
+@media (max-width: 640px) {
+  .inputForm {
+    padding: var(--space-3) var(--space-4);
+    gap: var(--space-2);
+  }
+  .messageInput {
+    padding: var(--space-3);
+  }
+  .sendBtn {
+    padding: var(--space-3) var(--space-4);
+  }
+}

@@ -1,43 +1,34 @@
 import { useState, useRef, useEffect } from 'react'
-import type { FormEvent } from 'react'
-import './App.css'
 import { sendMessage } from './api/chat'
-
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
-}
+import Header from './components/Header/Header'
+import InputForm from './components/InputForm/InputForm'
+import type { ChatMessage } from './types'
+import styles from './App.module.css'
+import MessageList from './components/MessageList/MessageList'
 
 function App(): React.JSX.Element {
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  
   const [threadId] = useState<string>(() => crypto.randomUUID())
 
-  const scrollToBottom = (): void => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
-
   useEffect(() => {
-    scrollToBottom()
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!input.trim() || isLoading) return
-
-    const userMessage: Message = { role: 'user', content: input.trim() }
+    const userMessage: ChatMessage = { role: 'user', content: input.trim() }
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setIsLoading(true)
     setError('')
-
     try {
       const response = await sendMessage(input.trim(), threadId)
-      const assistantMessage: Message = { role: 'assistant', content: response }
+      const assistantMessage: ChatMessage = { role: 'assistant', content: response }
       setMessages(prev => [...prev, assistantMessage])
     } catch (err) {
       setError('Failed to send message. Please try again.')
@@ -47,85 +38,27 @@ function App(): React.JSX.Element {
     }
   }
 
-  const clearChat = (): void => {
+  const clearChat = () => {
     setMessages([])
     setError('')
   }
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>🥗 Nutrition Assistant</h1>
-        <button onClick={clearChat} className="clear-btn">
-          Clear Chat
-        </button>
-      </header>
-      
-      <div className="chat-container">
-        <div className="messages">
-          {messages.length === 0 && (
-            <div className="welcome-message">
-              <h2>Welcome to your Nutrition Assistant!</h2>
-              <p>Ask me about:</p>
-              <ul>
-                <li>Specific restaurant menu nutrition information</li>
-                <li>Restaurant recommendations for your area</li>
-                <li>Recipe suggestions</li>
-                <li>General nutrition questions</li>
-              </ul>
-            </div>
-          )}
-          
-          {messages.map((message, index) => (
-            <div key={index} className={`message ${message.role}`}>
-              <div className="message-content">
-                <div className="message-role">
-                  {message.role === 'user' ? '👤 You' : '🤖 Assistant'}
-                </div>
-                <div className="message-text">{message.content}</div>
-              </div>
-            </div>
-          ))}
-          
-          {isLoading && (
-            <div className="message assistant">
-              <div className="message-content">
-                <div className="message-role">🤖 Assistant</div>
-                <div className="message-text typing">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
-        
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
-        
-        <form onSubmit={handleSubmit} className="input-form">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask me anything about nutrition..."
-            className="message-input"
-            disabled={isLoading}
-          />
-          <button 
-            type="submit" 
-            className="send-btn"
-            disabled={!input.trim() || isLoading}
-          >
-            Send
-          </button>
-        </form>
+    <div className={styles.app}>
+      <Header onClear={clearChat} />
+      <div className={styles.chatContainer}>
+        <MessageList
+          messages={messages}
+          isLoading={isLoading}
+          messagesEndRef={messagesEndRef}
+        />
+        {error && <div className={styles.errorMessage}>{error}</div>}
+        <InputForm
+          input={input}
+          setInput={setInput}
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   )

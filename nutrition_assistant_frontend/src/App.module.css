@@ -1,0 +1,40 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--white);
+  border-left: 1px solid var(--gray-200);
+  border-right: 1px solid var(--gray-200);
+}
+
+.chatContainer {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 73px);
+  background: var(--white);
+}
+
+.errorMessage {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: var(--space-3) var(--space-4);
+  margin: 0 var(--space-6);
+  border-radius: var(--border-radius);
+  border: 1px solid #fecaca;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .app {
+    border-left: none;
+    border-right: none;
+    margin: 0;
+  }
+}
+@media (max-width: 640px) {
+  .chatContainer {
+    height: calc(100vh - 65px);
+  }
+}
