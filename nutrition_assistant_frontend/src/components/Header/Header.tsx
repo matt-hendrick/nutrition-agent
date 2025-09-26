@@ -7,7 +7,9 @@ interface HeaderProps {
 export default function Header({ onClear }: HeaderProps) {
   return (
     <header className={styles.header}>
-      <h1>🥗 Nutrition Assistant</h1>
+      <h1 className={styles.title}>
+        <span className={styles.titleText}>Nutrition Assistant</span>
+      </h1>
       <button onClick={onClear} className={styles.clearBtn}>
         Clear Chat
       </button>

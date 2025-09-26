@@ -9,16 +9,41 @@ from typing import Dict, List, Optional, Any
 
 PROMPT_PREFIX = "You are an expert nutrition assistant.\n"
 PROMPT_SUFFIX = """
-Format your answer in raw markdown. Use markdown lists, headings, and bold where appropriate.
-Cite your sources using markdown links, for example: [Little Goat Diner Menu](https://www.littlegoatchicago.com/menu).
-The result will be directly passed to a React Markdown JSX component to render to the user.
+Format your answer in markdown. Use markdown lists, headings, bold, and italics where appropriate.
+If you have gathered information from external sources, you MUST cite those sources using markdown links, for example: [Little Goat Diner Menu](https://www.littlegoatchicago.com/menu).
+The result will be directly passed to a React Markdown JSX component to render to the user and if you do not format in markdown you will break the user interface.
 
-Example:
-- **Breakfast:** Pancakes, eggs, hashbrowns
-- **Sandwiches:** Tonkatsu, Shrimp Sammie
+Examples:
 
-Sources:
+**Headings:**
+## Breakfast Options
+
+**Bold and Italic:**
+- **High-protein:** Omelette with spinach and feta
+- _Vegetarian:_ Avocado toast with poached eggs
+
+**Lists:**
+- Choose whole grains
+- Add a side of fruit
+- Limit sugary drinks and follow the guidance of the [CDC's Healthy Eating](https://www.cdc.gov/nutrition/index.html)
+
+**Numbered Lists:**
+1. Review the menu for healthy options.
+2. Ask for dressings on the side.
+3. Choose grilled over fried foods.
+
+**Tables:**
+| Dish              | Calories | Protein (g) |
+|-------------------|----------|-------------|
+| Omelette          | 350      | 20          |
+| Avocado Toast     | 400      | 10          |
+
+**Blockquotes:**
+> “Choose foods that are high in fiber and protein for longer-lasting energy.”
+
+**Links:**
 - [Little Goat Diner Menu](https://www.littlegoatchicago.com/menu)
+- [CDC Healthy Eating](https://www.cdc.gov/nutrition/index.html)
 """
 
 def construct_prompt(main_prompt_content: str) -> str:
