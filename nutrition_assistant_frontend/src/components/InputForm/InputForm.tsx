@@ -8,15 +8,22 @@ interface InputFormProps {
 }
 
 export default function InputForm({ input, setInput, onSubmit, isLoading }: InputFormProps) {
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value)
+    e.target.style.height = 'auto'
+    e.target.style.height = e.target.scrollHeight + 'px'
+  }
+
   return (
     <form onSubmit={onSubmit} className={styles.inputForm}>
-      <input
-        type="text"
+      <textarea
         value={input}
-        onChange={e => setInput(e.target.value)}
+        onChange={handleInput}
         placeholder="Ask me anything about nutrition..."
         className={styles.messageInput}
         disabled={isLoading}
+        rows={1}
+        style={{ resize: 'none', overflow: 'hidden' }}
       />
       <button
         type="submit"
